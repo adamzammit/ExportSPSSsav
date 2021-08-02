@@ -32,6 +32,8 @@ class SPSSWriter extends Writer
         $this->separator       = ',';
         $this->hasOutputHeader = false;
         $this->spssfileversion = $pluginsettings['spssfileversion']['current'];
+
+
         if ($this->spssfileversion >= 13) {
             $this->maxStringLength = 32767; // for SPSS version 13 and above
         } else {
@@ -503,10 +505,22 @@ class SPSSWriter extends Writer
             'prodName' => '@(#) IBM SPSS STATISTICS 64-bit Macintosh 23.0.0.0',
             'creationDate' => date('d M y'),
             'creationTime' => date('H:M:s'),
-            'weightIndex' => 0);
+            'weightIndex' => 0,
+       );
 
+        $info = array(
+             'machineInteger' => [
+                 'machineCode' => 720,
+                 'version' => [23, 0, 0],
+             ],
+             'machineFloatingPoint' => [
+                 'sysmis' => -1.7976931348623157e+308,
+                 'highest' => 1.7976931348623157e+308,
+                 'lowest' => -1.7976931348623155e+308,
+             ],
+        );
 
-        $writer = new \SPSS\Sav\Writer(['header' => $header, 'variables' => $variables]);
+        $writer = new \SPSS\Sav\Writer(['header' => $header, 'info' => $info, 'variables' => $variables]);
 
         foreach ($this->customResponsemap as $aResponses) {
             $tmpdat = array();
