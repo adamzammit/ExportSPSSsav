@@ -463,8 +463,8 @@ class SPSSWriter extends Writer
             }
             $tmpvar['label'] = $question['varlabel'];        
             $tmpwidth = $question['spsswidth'];
-            //export value labels if they exist
-            if (!empty($this->customFieldmap['answers'][$question['qid']]) && $question['commentother'] == false) {
+            //export value labels if they exist (not for time questions)
+            if (!empty($this->customFieldmap['answers'][$question['qid']]) && $question['commentother'] == false && $question['type'] != "answer_time") {
                 $tmpvar['values'] = array();
                 foreach($this->customFieldmap['answers'][$question['qid']] as $aAnswercodes) {
                     foreach($aAnswercodes as $sAnscode => $aAnswer) {
