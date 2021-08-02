@@ -8,9 +8,9 @@ LimeSurvey plugin to allow for the export to an SPSS/PSPP sav file without the n
 
 ## Installation
 
-Download the zip from the [releases](https://github.com/adamzammit/ExportSPSSsav/releases) page and extract to your plugins folder. You can also clone directly from git: go to your plugins directory and type
+Download the zip from the [releases](https://github.com/adamzammit/ExportSPSSsav/releases) page and extract to your plugins folder. You will also need to download [tiamo/spss](https://github.com/adamzammit/spss) and place it in the helpers/spss folder. Alternativel, you can also clone directly from git: with the tiamo/spss submodule included. Go to your plugins directory and type:
 ```
-git clone https://github.com/adamzammit/ExportSPSSsav.git ExportSPSSsav
+git clone --recurse-submodules https://github.com/adamzammit/ExportSPSSsav.git ExportSPSSsav
 ```
 
 ## Requirements
