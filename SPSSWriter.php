@@ -504,7 +504,7 @@ class SPSSWriter extends Writer
         $header = array(
             'prodName' => '@(#) IBM SPSS STATISTICS 64-bit Macintosh 23.0.0.0',
             'creationDate' => date('d M y'),
-            'creationTime' => date('H:M:s'),
+            'creationTime' => date('H:i:s'),
             'weightIndex' => 0,
        );
 
