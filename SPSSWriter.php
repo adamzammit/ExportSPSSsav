@@ -322,6 +322,10 @@ class SPSSWriter extends Writer
                 $iStringlength = 1;
                 if ($response != '') {
 
+                    if ($response == '-oth-') {
+                     $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['spssothervaluelabel'] = true;
+                    }
+
                     $numberresponse = trim($response);
                     if ($this->customFieldmap['info']['surveyls_numberformat'] == 1) {
                         // if settings: decimal seperator==','
@@ -482,6 +486,10 @@ class SPSSWriter extends Writer
                             if ($tmpwidth < 28) $tmpwidth = 28; // SPSS wants variable width wide where string data stored
                         }
                     }
+                }
+                //if other is set add as value label
+                if (isset($question['spssothervaluelabel']) && $question['spssothervaluelabel'] == true) {
+                    $tmpvar['values']['-oth-'] = "Other";
                 }
             }
             $tmpvar['width'] = $tmpwidth;
