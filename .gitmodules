@@ -1,0 +1,3 @@
+[submodule "helpers/spss"]
+	path = helpers/spss
+	url = git@github.com:tiamo/spss.git
