@@ -25,6 +25,11 @@ class SPSSWriter extends Writer
     protected $headers = array();
     protected $headersSGQA = array();
     protected $aQIDnonumericalAnswers = array();
+    protected $recodeOther = 997;
+    protected $multipleChoiceData = array();
+    protected $yvalue = 'Y';
+    protected $nvalue = 'N';
+
 
     function __construct($pluginsettings)
     {
@@ -84,8 +89,8 @@ class SPSSWriter extends Writer
     {
         App()->setLanguage($sLanguage);
 
-        $yvalue = $oOptions->convertY ? $oOptions->yValue : 'Y';
-        $nvalue = $oOptions->convertN ? $oOptions->nValue : 'N';
+        $this->yvalue = $oOptions->convertY ? $oOptions->yValue : 'Y';
+        $this->nvalue = $oOptions->convertN ? $oOptions->nValue : 'N';
 
         //create fieldmap only with the columns (variables) selected
         $aFieldmap['questions'] = array_intersect_key($survey->fieldMap, array_flip($oOptions->selectedColumns));
@@ -162,27 +167,27 @@ class SPSSWriter extends Writer
 
             //create value labels for question types with "fixed" answers (YES/NO etc.)
             if ((isset($aQuestion['other']) && $aQuestion['other'] == 'Y') || substr($aQuestion['fieldname'], -7) == 'comment') {
-                $aFieldmap['questions'][$sSGQAkey]['commentother'] = true; //comment/other fields: create flag, so value labels are not attached (in close())
+               $aFieldmap['questions'][$sSGQAkey]['commentother'] = true; //comment/other fields: create flag, so value labels are not attached (in close())
             } else {
                 $aFieldmap['questions'][$sSGQAkey]['commentother'] = false;
 
 
                 if ($aQuestion['type'] == 'M') {
-                    $aFieldmap['answers'][$aQuestion['qid']]['0'][$yvalue] = array(
-                        'code' => $yvalue,
+                    $aFieldmap['answers'][$aQuestion['qid']]['0'][$this->yvalue] = array(
+                        'code' => $this->yvalue,
                         'answer' => gT('Yes')
                     );
-                    $aFieldmap['answers'][$aQuestion['qid']]['0']['0'] = array(
-                        'code' => 0,
+                    $aFieldmap['answers'][$aQuestion['qid']]['0'][$this->nvalue] = array(
+                        'code' => $this->nvalue,
                         'answer' => gT('Not Selected')
                     );
                 } elseif ($aQuestion['type'] == "P") {
-                    $aFieldmap['answers'][$aQuestion['qid']]['0'][$yvalue] = array(
-                        'code' => $yvalue,
+                    $aFieldmap['answers'][$aQuestion['qid']]['0'][$this->yvalue] = array(
+                        'code' => $this->yvalue,
                         'answer' => gT('Yes')
                     );
-                    $aFieldmap['answers'][$aQuestion['qid']]['0']['0'] = array(
-                        'code' => 0,
+                    $aFieldmap['answers'][$aQuestion['qid']]['0'][$this->nvalue] = array(
+                        'code' => $this->nvalue,
                         'answer' => gT('Not Selected')
                     );
                 } elseif ($aQuestion['type'] == "G") {
@@ -195,12 +200,12 @@ class SPSSWriter extends Writer
                         'answer' => gT('Male')
                     );
                 } elseif ($aQuestion['type'] == "Y") {
-                    $aFieldmap['answers'][$aQuestion['qid']]['0'][$yvalue] = array(
-                        'code' => $yvalue,
+                    $aFieldmap['answers'][$aQuestion['qid']]['0'][$this>yvalue] = array(
+                        'code' => $this->yvalue,
                         'answer' => gT('Yes')
                     );
-                    $aFieldmap['answers'][$aQuestion['qid']]['0'][$nvalue] = array(
-                        'code' => $nvalue,
+                    $aFieldmap['answers'][$aQuestion['qid']]['0'][$this->nvalue] = array(
+                        'code' => $this->nvalue,
                         'answer' => gT('No')
                     );
                 } elseif ($aQuestion['type'] == "C") {
@@ -316,7 +321,6 @@ class SPSSWriter extends Writer
         foreach ($this->customResponsemap as $iRespId => &$aResponses) {
             // go through variables and response items
 
-
             //relevant types for SPSS are numeric (need to know largest number and number of decimal places), date and string
             foreach ($aResponses as $iVarid => &$response) {
                 $response = trim($response);
@@ -324,8 +328,16 @@ class SPSSWriter extends Writer
                 $iStringlength = 1;
                 if ($response != '') {
 
+                    //if this is a multiple choice question with an other - store the data in a tmp variable for additional export
+                    if ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == 'M' && $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['commentother'] == true ) {
+                        $this->multipleChoiceData[$iVarid][$iRespId] = $this->yvalue;
+                    }
+
                     if ($response == '-oth-') {
-                     $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['spssothervaluelabel'] = true;
+                        $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['spssothervaluelabel'] = true;
+                        if ($this->recodeOther != false) {
+                            $response = $this->recodeOther;
+                        }
                     }
 
                     $numberresponse = trim($response);
@@ -462,6 +474,25 @@ class SPSSWriter extends Writer
         $variables = array();
  
         foreach ($this->customFieldmap['questions'] as $question) {
+            //if this is a multiple choice 'other' question, add a new column in advance
+            if ($question['commentother'] == true && $question['type'] == 'M') {
+                $tmpvar = array();
+                $tmpvar['name'] = $question['varname'] . 'c';
+                $tmpvar['format'] = Variable::FORMAT_TYPE_F;
+                $tmpvar['width'] = 1;
+                $tmpvar['decimals'] = 0;
+                $tmpvar['alignment'] = Variable::ALIGN_LEFT;
+                $tmpvar['columns'] = 8;
+                $tmpvar['label'] = $question['varlabel'];        
+                $tmpvar['measure'] = Variable::MEASURE_NOMINAL;   
+                $tmpvar['values'][$this->yvalue] = gT('Yes');
+                if (!is_numeric($this->yvalue)) {
+                    $tmpvar['width'] = 28;
+                }
+                $variables[] = $tmpvar;
+            }
+
+
             $tmpvar = array();
             $tmpvar['name'] = $question['varname'];       
             $tmpvar['format'] = $question['spssformat'];
@@ -491,7 +522,11 @@ class SPSSWriter extends Writer
                 }
                 //if other is set add as value label
                 if (isset($question['spssothervaluelabel']) && $question['spssothervaluelabel'] == true) {
-                    $tmpvar['values']['-oth-'] = "Other";
+                    $othvalue = '-oth-';
+                    if ($this->recodeOther != false) {
+                        $othvalue = $this->recodeOther;
+                    }
+                    $tmpvar['values'][$othvalue] = "Other";
                 }
             }
             $tmpvar['width'] = $tmpwidth;
@@ -522,9 +557,16 @@ class SPSSWriter extends Writer
 
         $writer = new \SPSS\Sav\Writer(['header' => $header, 'info' => $info, 'variables' => $variables]);
 
-        foreach ($this->customResponsemap as $aResponses) {
+        foreach ($this->customResponsemap as $iResponseid => $aResponses) {
             $tmpdat = array();
             foreach ($aResponses as $iVarid => $response) {
+                if (isset($this->multipleChoiceData[$iVarid])) {
+                    $mr = "";
+                    if (isset($this->multipleChoiceData[$iVarid][$iResponseid])) {
+                        $mr = $this->multipleChoiceData[$iVarid][$iResponseid];
+                    }
+                    $tmpdat[] = $mr;
+                }
                 $tmpdat[] = $response;
             }
             $writer->writeCase($tmpdat);
