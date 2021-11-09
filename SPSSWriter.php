@@ -116,6 +116,8 @@ class SPSSWriter extends Writer
         // go through the questions array and create/modify vars for SPSS-output
         foreach ($aFieldmap['questions'] as $sSGQAkey => $aQuestion) {
 
+        
+    
             //get SPSS output type if selected
             $aQuestionAttribs = QuestionAttribute::model()->getQuestionAttributes($aQuestion['qid'],$sLanguage);
             if (isset($aQuestionAttribs['scale_export'])) {
@@ -181,6 +183,20 @@ class SPSSWriter extends Writer
                         'code' => $this->nvalue,
                         'answer' => gT('Not Selected')
                     );
+                } elseif ($aQuestion['type'] == ":") { //array numeric .. check if multiflex checkbox
+                    $qidattributes=QuestionAttribute::model()->getQuestionAttributes($aQuestion['qid']);
+                    $aFieldmap['questions'][$sSGQAkey]['multiflexible_checkbox'] = false;
+                    if (isset($qidattributes['multiflexible_checkbox']) && $qidattributes['multiflexible_checkbox'] == 1) {
+                        $aFieldmap['questions'][$sSGQAkey]['multiflexible_checkbox'] = true;
+                        $aFieldmap['answers'][$aQuestion['qid']]['0'][$this->yvalue] = array(
+                            'code' => $this->yvalue,
+                            'answer' => gT('Yes')
+                        );
+                        $aFieldmap['answers'][$aQuestion['qid']]['0'][$this->nvalue] = array(
+                            'code' => $this->nvalue,
+                            'answer' => gT('Not Selected')
+                        );
+                    }
                 } elseif ($aQuestion['type'] == "P") {
                     $aFieldmap['answers'][$aQuestion['qid']]['0'][$this->yvalue] = array(
                         'code' => $this->yvalue,
@@ -333,6 +349,12 @@ class SPSSWriter extends Writer
                         $this->multipleChoiceData[$iVarid][$iRespId] = $this->yvalue;
                     }
 
+                    //if this is a multiflex checkbox recode
+                    if ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == ':' && $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['multiflexible_checkbox'] == true ) {
+                        $response = $this->yvalue;
+                    }
+
+
                     if ($response == '-oth-') {
                         $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['spssothervaluelabel'] = true;
                         if ($this->recodeOther != false) {
@@ -381,6 +403,11 @@ class SPSSWriter extends Writer
 // non-numeric response
                         $iDatatype = 1; //string
                         $iStringlength = strlen($response); //for strings we need the length for the format and the data type
+                    }
+                } else {
+                    //if this is a multiflex checkbox recode
+                    if ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == ':' && $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['multiflexible_checkbox'] == true ) {
+                        $response = $this->nvalue;
                     }
                 }
 
@@ -472,7 +499,7 @@ class SPSSWriter extends Writer
         include_once(dirname(__FILE__) . "/helpers/spss/vendor/autoload.php");
 
         $variables = array();
- 
+
         foreach ($this->customFieldmap['questions'] as $question) {
             //if this is a multiple choice 'other' question, add a new column in advance
             if ($question['commentother'] == true && $question['type'] == 'M') {
@@ -488,6 +515,7 @@ class SPSSWriter extends Writer
                 $tmpvar['values'][$this->yvalue] = gT('Yes');
                 if (!is_numeric($this->yvalue)) {
                     $tmpvar['width'] = 28;
+                    $tmpvar['format'] = Variable::FORMAT_TYPE_A;
                 }
                 $variables[] = $tmpvar;
             }
