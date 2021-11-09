@@ -405,8 +405,9 @@ class SPSSWriter extends Writer
                         $iStringlength = strlen($response); //for strings we need the length for the format and the data type
                     }
                 } else {
-                    //if this is a multiflex checkbox recode
-                    if ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == ':' && $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['multiflexible_checkbox'] == true ) {
+                    //if this is a multiple choice response, or a  multiflex checkbox recode empty responses as Nvalue
+                    if ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == 'M' || 
+                        ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == ':' && $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['multiflexible_checkbox'] == true )) {
                         $response = $this->nvalue;
                     }
                 }
