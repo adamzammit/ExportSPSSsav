@@ -346,7 +346,12 @@ class SPSSWriter extends Writer
 
                     //if this is a multiple choice question with an other - store the data in a tmp variable for additional export
                     if ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == 'M' && $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['commentother'] == true ) {
-                        $this->multipleChoiceData[$iVarid][$iRespId] = $this->yvalue;
+                        if ($response == $this->nvalue) {
+                            $this->multipleChoiceData[$iVarid][$iRespId] = $this->nvalue;
+                            $response = "";
+                        } else {
+                            $this->multipleChoiceData[$iVarid][$iRespId] = $this->yvalue;
+                        }
                     }
 
                     //if this is a multiflex checkbox recode
@@ -406,9 +411,11 @@ class SPSSWriter extends Writer
                     }
                 } else {
                     //if this is a multiple choice response, or a  multiflex checkbox recode empty responses as Nvalue
-                    if ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == 'M' || 
-                        ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == ':' && $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['multiflexible_checkbox'] == true )) {
+                    if ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == ':' && $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['multiflexible_checkbox'] == true) {
                         $response = $this->nvalue;
+                    }
+                    if ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == 'M' && $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['commentother'] == true ) {
+                        $this->multipleChoiceData[$iVarid][$iRespId] = $this->nvalue;
                     }
                 }
 
@@ -514,7 +521,8 @@ class SPSSWriter extends Writer
                 $tmpvar['label'] = $question['varlabel'];        
                 $tmpvar['measure'] = Variable::MEASURE_NOMINAL;   
                 $tmpvar['values'][$this->yvalue] = gT('Yes');
-                if (!is_numeric($this->yvalue)) {
+                $tmpvar['values'][$this->nvalue] = gT('Not selected');
+                if (!is_numeric($this->yvalue) || !is_numeric($this->nvalue)) {
                     $tmpvar['width'] = 28;
                     $tmpvar['format'] = Variable::FORMAT_TYPE_A;
                 }
