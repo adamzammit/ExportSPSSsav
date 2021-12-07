@@ -414,8 +414,12 @@ class SPSSWriter extends Writer
                     if ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == ':' && $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['multiflexible_checkbox'] == true) {
                         $response = $this->nvalue;
                     }
-                    if ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == 'M' && $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['commentother'] == true ) {
-                        $this->multipleChoiceData[$iVarid][$iRespId] = $this->nvalue;
+                    if ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == 'M') {
+                        if ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['commentother'] == true) {
+                            $this->multipleChoiceData[$iVarid][$iRespId] = $this->nvalue;
+                        } else {
+                            $response = $this->nvalue;
+                        }
                     }
                 }
 
