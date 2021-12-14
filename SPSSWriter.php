@@ -58,7 +58,7 @@ class SPSSWriter extends Writer
             $this->handle = fopen($this->filename, 'w');
         }
         $this->headersSGQA       = $oOptions->selectedColumns;
-        $oOptions->headingFormat = 'code'; // Always use fieldcodes
+        //$oOptions->headingFormat = 'code'; // Always use fieldcodes
         $oOptions->answerFormat = "short"; // force answer codes
         $this->customFieldmap = $this->createSPSSFieldmap($survey, $sLanguageCode, $oOptions);
     }
@@ -145,24 +145,27 @@ class SPSSWriter extends Writer
                 $aFieldmap['questions'][$sSGQAkey]['type'] = 'N';
             }
 
+            $value= $aQuestion['question'];
+            $sColumn = $aQuestion['fieldname'];
+            switch ($oOptions->headingFormat) {
+                case 'abbreviated':
+                    $value = $this->getAbbreviatedHeading($survey, $oOptions, $sColumn);
+                    break;
+                case 'full':
+                    $value = $this->getFullHeading($survey, $oOptions, $sColumn);
+                    break;
+                case 'codetext':
+                    $value = $this->getHeadingCode($survey, $oOptions, $sColumn).$oOptions->headCodeTextSeparator.$this->getHeadingText($survey, $oOptions, $sColumn);
+                    break;
+                case 'code':
+                default:
+                    $value = $this->getHeadingCode($survey, $oOptions, $sColumn);
+                    break;
+            }
+            $aQuestion['varlabel'] = $value;
 
             //Rename the variables if original name is not SPSS-compatible
             $aQuestion['varname'] = $this->SPSSvarname($aQuestion['varname']);
-
-            // create variable labels
-            $aQuestion['varlabel'] = $aQuestion['question'];
-            if (isset($aQuestion['scale'])) {
-                            $aQuestion['varlabel'] = "[{$aQuestion['scale']}] ".$aQuestion['varlabel'];
-            }
-            if (isset($aQuestion['subquestion'])) {
-                            $aQuestion['varlabel'] = "[{$aQuestion['subquestion']}] ".$aQuestion['varlabel'];
-            }
-            if (isset($aQuestion['subquestion2'])) {
-                            $aQuestion['varlabel'] = "[{$aQuestion['subquestion2']}] ".$aQuestion['varlabel'];
-            }
-            if (isset($aQuestion['subquestion1'])) {
-                            $aQuestion['varlabel'] = "[{$aQuestion['subquestion1']}] ".$aQuestion['varlabel'];
-            }
 
             //write varlabel back to fieldmap
             $aFieldmap['questions'][$sSGQAkey]['varlabel'] = $aQuestion['varlabel'];
