@@ -216,7 +216,7 @@ class SPSSWriter extends Writer
                         'answer' => gT('Male')
                     );
                 } elseif ($aQuestion['type'] == "Y") {
-                    $aFieldmap['answers'][$aQuestion['qid']]['0'][$this>yvalue] = array(
+                    $aFieldmap['answers'][$aQuestion['qid']]['0'][$this->yvalue] = array(
                         'code' => $this->yvalue,
                         'answer' => gT('Yes')
                     );
@@ -407,7 +407,9 @@ class SPSSWriter extends Writer
                     } else {
 // non-numeric response
                         $iDatatype = 1; //string
-                        $iStringlength = strlen($response); //for strings we need the length for the format and the data type
+                        if (strlen($response) > 0) {
+                            $iStringlength = strlen($response); //for strings we need the length for the format and the data type
+                        }
                     }
                 } else {
                     //if this is a multiple choice response, or a  multiflex checkbox recode empty responses as Nvalue
