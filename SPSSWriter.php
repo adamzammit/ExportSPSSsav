@@ -184,7 +184,7 @@ class SPSSWriter extends Writer
                     );
                     $aFieldmap['answers'][$aQuestion['qid']]['0'][$this->nvalue] = array(
                         'code' => $this->nvalue,
-                        'answer' => gT('Not Selected')
+                        'answer' => gT('No')
                     );
                 } elseif ($aQuestion['type'] == ":") { //array numeric .. check if multiflex checkbox
                     $qidattributes=QuestionAttribute::model()->getQuestionAttributes($aQuestion['qid']);
@@ -197,7 +197,7 @@ class SPSSWriter extends Writer
                         );
                         $aFieldmap['answers'][$aQuestion['qid']]['0'][$this->nvalue] = array(
                             'code' => $this->nvalue,
-                            'answer' => gT('Not Selected')
+                            'answer' => gT('No')
                         );
                     }
                 } elseif ($aQuestion['type'] == "P") {
@@ -207,7 +207,7 @@ class SPSSWriter extends Writer
                     );
                     $aFieldmap['answers'][$aQuestion['qid']]['0'][$this->nvalue] = array(
                         'code' => $this->nvalue,
-                        'answer' => gT('Not Selected')
+                        'answer' => gT('No')
                     );
                 } elseif ($aQuestion['type'] == "G") {
                     $aFieldmap['answers'][$aQuestion['qid']]['0']['0'] = array(
@@ -340,8 +340,10 @@ class SPSSWriter extends Writer
         foreach ($this->customResponsemap as $iRespId => &$aResponses) {
             // go through variables and response items
 
+
             //relevant types for SPSS are numeric (need to know largest number and number of decimal places), date and string
             foreach ($aResponses as $iVarid => &$response) {
+                $isnull = is_null($response);
                 $response = trim($response);
                 $iDatatype = 5;
                 $iStringlength = 1;
@@ -416,10 +418,12 @@ class SPSSWriter extends Writer
                     }
                 } else {
                     //if this is a multiple choice response, or a  multiflex checkbox recode empty responses as Nvalue
-                    if ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == ':' && $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['multiflexible_checkbox'] == true) {
+                    if ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == ':'
+                        && $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['multiflexible_checkbox'] == true
+                        && !$isnull) {
                         $response = $this->nvalue;
                     }
-                    if ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == 'M') {
+                    if ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == 'M' && !$isnull) {
                         if ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['commentother'] == true) {
                             $this->multipleChoiceData[$iVarid][$iRespId] = $this->nvalue;
                         } else {
@@ -530,7 +534,7 @@ class SPSSWriter extends Writer
                 $tmpvar['label'] = $question['varlabel'];        
                 $tmpvar['measure'] = Variable::MEASURE_NOMINAL;   
                 $tmpvar['values'][$this->yvalue] = gT('Yes');
-                $tmpvar['values'][$this->nvalue] = gT('Not selected');
+                $tmpvar['values'][$this->nvalue] = gT('No');
                 if (!is_numeric($this->yvalue) || !is_numeric($this->nvalue)) {
                     $tmpvar['width'] = 28;
                     $tmpvar['format'] = Variable::FORMAT_TYPE_A;
