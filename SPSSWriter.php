@@ -26,7 +26,6 @@ class SPSSWriter extends Writer
     protected $headersSGQA = array();
     protected $aQIDnonumericalAnswers = array();
     protected $recodeOther = 997;
-    protected $recodeNotShown = 992;
     protected $multipleChoiceData = array();
     protected $yvalue = 'Y';
     protected $nvalue = 'N';
@@ -185,7 +184,7 @@ class SPSSWriter extends Writer
                     );
                     $aFieldmap['answers'][$aQuestion['qid']]['0'][$this->nvalue] = array(
                         'code' => $this->nvalue,
-                        'answer' => gT('Not selected')
+                        'answer' => gT('Not Selected')
                     );
                 } elseif ($aQuestion['type'] == ":") { //array numeric .. check if multiflex checkbox
                     $qidattributes=QuestionAttribute::model()->getQuestionAttributes($aQuestion['qid']);
@@ -198,7 +197,7 @@ class SPSSWriter extends Writer
                         );
                         $aFieldmap['answers'][$aQuestion['qid']]['0'][$this->nvalue] = array(
                             'code' => $this->nvalue,
-                            'answer' => gT('Not selected')
+                            'answer' => gT('Not Selected')
                         );
                     }
                 } elseif ($aQuestion['type'] == "P") {
@@ -208,9 +207,9 @@ class SPSSWriter extends Writer
                     );
                     $aFieldmap['answers'][$aQuestion['qid']]['0'][$this->nvalue] = array(
                         'code' => $this->nvalue,
-                        'answer' => gT('Not selected')
+                        'answer' => gT('Not Selected')
                     );
-               } elseif ($aQuestion['type'] == "G") {
+                } elseif ($aQuestion['type'] == "G") {
                     $aFieldmap['answers'][$aQuestion['qid']]['0']['0'] = array(
                         'code' => 'F',
                         'answer' => gT('Female')
@@ -228,7 +227,7 @@ class SPSSWriter extends Writer
                         'code' => $this->nvalue,
                         'answer' => gT('No')
                     );
-               } elseif ($aQuestion['type'] == "C") {
+                } elseif ($aQuestion['type'] == "C") {
                     $aFieldmap['answers'][$aQuestion['qid']]['0']['1'] = array(
                         'code' => 1,
                         'answer' => gT('Yes')
@@ -241,7 +240,7 @@ class SPSSWriter extends Writer
                         'code' => 3,
                         'answer' => gT('Uncertain')
                     );
-              } elseif ($aQuestion['type'] == "E") {
+                } elseif ($aQuestion['type'] == "E") {
                     $aFieldmap['answers'][$aQuestion['qid']]['0']['1'] = array(
                         'code' => 1,
                         'answer' => gT('Increase')
@@ -254,7 +253,7 @@ class SPSSWriter extends Writer
                         'code' => 3,
                         'answer' => gT('Decrease')
                     );
-             }
+                }
             } // close: no-other/comment variable
         $aFieldmap['questions'][$sSGQAkey]['varname'] = $aQuestion['varname']; //write changes back to array
         } // close foreach question
@@ -343,14 +342,6 @@ class SPSSWriter extends Writer
 
             //relevant types for SPSS are numeric (need to know largest number and number of decimal places), date and string
             foreach ($aResponses as $iVarid => &$response) {
-                $nullresponse = false;
-                if (is_null($response)) {
-                    $nullresponse = true;
-                    if (!in_array($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['varname'],['id','submitdate','lastpage','startlanguage','seed','startdate','datestamp','ipaddr','refurl','interviewtime'])
-                        && !in_array($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'],['answer_time','page_time'])) {
-                        $response = $this->recodeNotShown;
-                    }
-                }
                 $response = trim($response);
                 $iDatatype = 5;
                 $iStringlength = 1;
@@ -540,12 +531,10 @@ class SPSSWriter extends Writer
                 $tmpvar['measure'] = Variable::MEASURE_NOMINAL;   
                 $tmpvar['values'][$this->yvalue] = gT('Yes');
                 $tmpvar['values'][$this->nvalue] = gT('Not selected');
-                $tmpvar['values'][$this->recodeNotShown] = gT('Not shown');
                 if (!is_numeric($this->yvalue) || !is_numeric($this->nvalue)) {
                     $tmpvar['width'] = 28;
                     $tmpvar['format'] = Variable::FORMAT_TYPE_A;
                 }
-                $tmpvar['missing'] = [$this->recodeNotShown];
                 $variables[] = $tmpvar;
             }
 
@@ -554,25 +543,15 @@ class SPSSWriter extends Writer
             $tmpvar['name'] = $question['varname'];       
             $tmpvar['format'] = $question['spssformat'];
             $tmpvar['width'] = $question['spsswidth'];
-            $tmpwidth = $question['spsswidth'];
-            if (!in_array($question['varname'],['id','submitdate','lastpage','startlanguage','seed','startdate','datestamp','ipaddr','refurl','interviewtime'])
-                && !in_array($question['type'],['page_time','answer_time'])) {
-                $tmpvar['missing'] = [$this->recodeNotShown];
-                //if no recode for not shown - add it here
-                if (!isset($tmpvar['values'][$this->recodeNotShown])) {
-                    $tmpvar['values'][$this->recodeNotShown] = gT('Not shown');
-                    if ($tmpwidth < strlen($this->recodeNotShown)) {
-                        $tmpwidth = strlen($this->recodeNotShown);
-                    }
-                }
-            }
             if ($question['spssdecimals'] > -1)
             {
                 $tmpvar['decimals'] = $question['spssdecimals'];        
             }
             $tmpvar['label'] = $question['varlabel'];        
+            $tmpwidth = $question['spsswidth'];
             //export value labels if they exist (not for time questions)
-            if (!empty($this->customFieldmap['answers'][$question['qid']]) && $question['commentother'] == false && !in_array($question['type'],["page_time","answer_time"])) {
+            if (!empty($this->customFieldmap['answers'][$question['qid']]) && $question['commentother'] == false && $question['type'] != "answer_time") {
+                $tmpvar['values'] = array();
                 foreach($this->customFieldmap['answers'][$question['qid']] as $aAnswercodes) {
                     foreach($aAnswercodes as $sAnscode => $aAnswer) {
                         $tmpans = "";
@@ -595,7 +574,7 @@ class SPSSWriter extends Writer
                     }
                     $tmpvar['values'][$othvalue] = "Other";
                 }
-           }
+            }
             $tmpvar['width'] = $tmpwidth;
             $tmpvar['columns'] = 8;
             $tmpvar['alignment'] = $question['spssalignment'];
