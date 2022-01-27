@@ -172,7 +172,13 @@ class SPSSWriter extends Writer
 
             //create value labels for question types with "fixed" answers (YES/NO etc.)
             if ((isset($aQuestion['other']) && $aQuestion['other'] == 'Y') || substr($aQuestion['fieldname'], -7) == 'comment') {
-               $aFieldmap['questions'][$sSGQAkey]['commentother'] = true; //comment/other fields: create flag, so value labels are not attached (in close())
+                $aFieldmap['questions'][$sSGQAkey]['commentother'] = true; //comment/other fields: create flag, so value labels are not attached (in close())
+                if (substr($aQuestion['fieldname'], -5) == 'other') {
+                    $tmpfn = substr($aQuestion['fieldname'],0, -5);
+                    if (isset($aFieldmap['questions'][$tmpfn])) {
+                        $aFieldmap['questions'][$tmpfn]['hasother'] = true;
+                    }
+                }
             } else {
                 $aFieldmap['questions'][$sSGQAkey]['commentother'] = false;
 
@@ -542,7 +548,6 @@ class SPSSWriter extends Writer
                 $variables[] = $tmpvar;
             }
 
-
             $tmpvar = array();
             $tmpvar['name'] = $question['varname'];       
             $tmpvar['format'] = $question['spssformat'];
@@ -570,8 +575,11 @@ class SPSSWriter extends Writer
                         }
                     }
                 }
-                //if other is set add as value label
-                if (isset($question['spssothervaluelabel']) && $question['spssothervaluelabel'] == true) {
+
+                //if other is set or expected, add as value label
+                if ((isset($question['spssothervaluelabel']) && $question['spssothervaluelabel'] == true) ||
+                    (isset($question['hasother']) && $question['hasother'] == true)
+                    ) {
                     $othvalue = '-oth-';
                     if ($this->recodeOther != false) {
                         $othvalue = $this->recodeOther;
