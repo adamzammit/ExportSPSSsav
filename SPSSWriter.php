@@ -423,13 +423,40 @@ class SPSSWriter extends Writer
                         }
                     }
                 } else {
+                    //check if at least one answered in group
+                    $checktype = $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'];
+
+                    $oneanswered = false;
+
+                    if ($checktype == ":" || $checktype == "M") {
+                        $checksid = $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['sid'];
+                        $checkgid = $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['gid'];
+                        $checkqid = $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['qid'];
+                        $checksqid = $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['sqid'];
+                        $checki = 0;
+                        foreach($this->customFieldmap['questions'] as $checkq) {
+                            if ($checkq['sid'] == $checksid &&
+                                $checkq['gid'] == $checkgid &&
+                                $checkq['qid'] == $checkqid &&
+                                $checkq['sqid'] != $checksqid) { //a question in this group that is not this question
+                                if (trim($aResponses[$checki]) != '') {
+                                    $oneanswered = true;
+                                    break;
+                                }
+                            }
+                            $checki++;
+                        }
+                    }
+
                     //if this is a multiple choice response, or a  multiflex checkbox recode empty responses as Nvalue
+                    //leave as null if all questions in the group are null
+                    //code as nvalue if at least one is answered and not null
                     if ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == ':'
                         && $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['multiflexible_checkbox'] == true
-                        && !$isnull) {
+                        && (!$isnull || $oneanswered)) {
                         $response = $this->nvalue;
                     }
-                    if ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == 'M' && !$isnull) {
+                    if ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == 'M' && (!$isnull || $oneanswered)) {
                         if ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['commentother'] == true) {
                             $this->multipleChoiceData[$iVarid][$iRespId] = $this->nvalue;
                         } else {
