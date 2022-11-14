@@ -26,7 +26,8 @@ class SPSSWriter extends Writer
     protected $headersSGQA = array();
     protected $aQIDnonumericalAnswers = array();
     protected $recodeOther = 997;
-    protected $recodeN = false;
+    protected $recodeNArray = false;
+    protected $recodeNMulti = true;
     protected $multipleChoiceData = array();
     protected $yvalue = 'Y';
     protected $nvalue = 'N';
@@ -452,12 +453,12 @@ class SPSSWriter extends Writer
                     //if this is a multiple choice response, or a  multiflex checkbox recode empty responses as Nvalue
                     //leave as null if all questions in the group are null
                     //code as nvalue if at least one is answered and not null
-                    if ($this->recodeN && $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == ':'
+                    if ($this->recodeNArray && $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == ':'
                         && $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['multiflexible_checkbox'] == true
                         && (!$isnull || $oneanswered)) {
                         $response = $this->nvalue;
                     }
-                    if ($this->recodeN && $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == 'M' && (!$isnull || $oneanswered)) {
+                    if ($this->recodeNMulti && $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == 'M' && (!$isnull || $oneanswered)) {
                         if ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['commentother'] == true) {
                             $this->multipleChoiceData[$iVarid][$iRespId] = $this->nvalue;
                         } else {
