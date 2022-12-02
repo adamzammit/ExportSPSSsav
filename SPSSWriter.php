@@ -369,7 +369,9 @@ class SPSSWriter extends Writer
 
                     //if this is a multiflex checkbox recode
                     if ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == ':' && $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['multiflexible_checkbox'] == true ) {
-                        $response = $this->yvalue;
+                        if ($response != 0) {
+                            $response = $this->yvalue;
+                        }
                     }
 
 
