@@ -460,6 +460,10 @@ class SPSSWriter extends Writer
                         && (!$isnull || $oneanswered)) {
                         $response = $this->nvalue;
                     }
+                    if ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['commentother'] == true
+                        && $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == 'M') { //ensure default response brought across
+                        $this->multipleChoiceData[$iVarid][$iRespId] = $response;
+                    }
                     if ($this->recodeNMulti && $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['type'] == 'M' && (!$isnull || $oneanswered)) {
                         if ($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['commentother'] == true) {
                             $this->multipleChoiceData[$iVarid][$iRespId] = $this->nvalue;
