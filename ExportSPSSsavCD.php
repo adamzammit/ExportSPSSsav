@@ -1,5 +1,5 @@
 <?php
-class ExportSPSSsav extends \LimeSurvey\PluginManager\PluginBase
+class ExportSPSSsavCD extends \LimeSurvey\PluginManager\PluginBase
 {
     
     protected $storage = 'DbStorage';

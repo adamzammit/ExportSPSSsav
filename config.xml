@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
     <metadata>
-        <name>ExportSPSSsav</name>
+        <name>ExportSPSSsavCD</name>
         <type>plugin</type>
         <creationDate>2021-03-31</creationDate>
         <lastUpdate>2021-08-02</lastUpdate>
