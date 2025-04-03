@@ -66,7 +66,7 @@ class ExportSPSSsavCD extends \LimeSurvey\PluginManager\PluginBase
         $exports = $event->get('exportplugins');
         
         // Yes we overwrite existing classes if available
-        $exports['spsssav'] = get_class();
+        $exports['spsssav'] = get_class($this);
         $event->set('exportplugins', $exports);
     }
     
