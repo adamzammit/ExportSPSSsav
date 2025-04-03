@@ -26,6 +26,7 @@ class SPSSWriter extends Writer
     protected $headersSGQA = array();
     protected $aQIDnonumericalAnswers = array();
     protected $recodeOther = 997;
+    protected $recodeOtherMissing = true; //recode to -oth- if question has other and data is missing
     protected $recodeNArray = false;
     protected $recodeNMulti = true;
     protected $multipleChoiceData = array();
@@ -372,7 +373,6 @@ class SPSSWriter extends Writer
                         }
                     }
 
-
                     if ($response == '-oth-') {
                         $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['spssothervaluelabel'] = true;
                         if ($this->recodeOther != false) {
@@ -473,6 +473,17 @@ class SPSSWriter extends Writer
                         }
 		    }
 
+		    //if this question has an other associated with it and we want to recode because it is missing
+		    if ($this->recodeOtherMissing && $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['hasother'] ?? false) {
+                        $currentsgqa = $this->headersSGQA[$iVarid];
+                        $othervarid = array_search($currentsgqa . "other", $this->headersSGQA);
+                        if (!empty($this->customResponsemap[$iRespId][$othervarid])) {
+                           $response = '-oth-';
+                           if ($this->recodeOther != false) {
+                               $response = $this->recodeOther;
+                           }
+                        }
+                    }
                 }
 
                 // initialize format and type (default: empty)
