@@ -474,7 +474,9 @@ class SPSSWriter extends Writer
 		    }
 
 		    //if this question has an other associated with it and we want to recode because it is missing
-		    if ($this->recodeOtherMissing && $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['hasother'] ?? false) {
+		    if ($this->recodeOtherMissing &&
+		        (isset($this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['hasother']) &&
+		        $this->customFieldmap['questions'][$this->headersSGQA[$iVarid]]['hasother'] == true) {
                         $currentsgqa = $this->headersSGQA[$iVarid];
                         $othervarid = array_search($currentsgqa . "other", $this->headersSGQA);
                         if (!empty($this->customResponsemap[$iRespId][$othervarid])) {
